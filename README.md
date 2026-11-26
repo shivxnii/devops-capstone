@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # End-to-End DevOps Pipeline for a Cloud-Native Task Manager (ENSP461 Capstone) - develop branch
+=======
+# End-to-End DevOps Pipeline for a Cloud-Native Task Manager (ENSP461 Capstone) - feature branch
+>>>>>>> feature/api
 
 Flask Task Manager (login, CRUD, REST API, Postgres) delivered by: **GitHub → Jenkins → SonarQube/Trivy → Docker → Argo CD (GitOps) → Kubernetes (Blue-Green) → Prometheus/Grafana + EFK**, with infra by **Terraform** and config by **Ansible**.
 
