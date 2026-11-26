@@ -1,0 +1,9 @@
+.git
+tests
+terraform
+ansible
+k8s
+docs
+__pycache__
+*.pyc
+.env

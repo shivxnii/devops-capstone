@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Task Manager</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body><header><h1>Task Manager</h1>{% if session.uid %}<a href="/logout">Logout</a>{% endif %}</header>
+<main>{% with m = get_flashed_messages() %}{% for x in m %}<p class="flash">{{ x }}</p>{% endfor %}{% endwith %}
+{% block c %}{% endblock %}</main></body></html>

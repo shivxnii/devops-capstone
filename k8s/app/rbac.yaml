@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: taskmanager-sa, namespace: taskmanager}
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: viewer, namespace: taskmanager}
+rules:
+  - {apiGroups: [""], resources: [pods, pods/log, services, configmaps], verbs: [get, list, watch]}
+  - {apiGroups: [apps], resources: [deployments, replicasets], verbs: [get, list, watch]}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: deployer, namespace: taskmanager}
+rules:
+  - {apiGroups: [apps], resources: [deployments, deployments/scale], verbs: [get, list, watch, update, patch]}
+  - {apiGroups: [""], resources: [services, pods, pods/log], verbs: [get, list, watch, patch]}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: viewer-binding, namespace: taskmanager}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: viewer}
+subjects: [{kind: User, name: dev-user, apiGroup: rbac.authorization.k8s.io}]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: deployer-binding, namespace: taskmanager}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: deployer}
+subjects: [{kind: User, name: ci-deployer, apiGroup: rbac.authorization.k8s.io}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: db-only-from-app, namespace: taskmanager}
+spec:
+  podSelector: {matchLabels: {app: postgres}}
+  ingress: [{from: [{podSelector: {matchLabels: {app: taskmanager}}}], ports: [{port: 5432}]}]

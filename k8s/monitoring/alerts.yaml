@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: {name: taskmanager-alerts, namespace: taskmanager}
+spec:
+  groups:
+    - name: taskmanager
+      rules:
+        - alert: AppDown
+          expr: up{namespace="taskmanager"} == 0
+          for: 1m
+          labels: {severity: critical}
+        - alert: HighErrorRate
+          expr: sum(rate(http_requests_total{status=~"5.."}[5m])) > 0.5
+          for: 5m
+          labels: {severity: warning}

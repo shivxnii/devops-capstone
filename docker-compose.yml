@@ -1,0 +1,49 @@
+# Run: cp .env.example .env && docker compose up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tasks
+      POSTGRES_USER: tasks
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tasks"]
+      interval: 5s
+      retries: 10
+  app:
+    build: .
+    image: taskmanager:local
+    environment:
+      DATABASE_URL: postgresql://tasks:${POSTGRES_PASSWORD}@db:5432/tasks
+      SECRET_KEY: ${SECRET_KEY}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    ports: ["5000:5000"]
+    depends_on:
+      db: {condition: service_healthy}
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes: [./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro]
+    ports: ["9090:9090"]
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    volumes: ["/:/rootfs:ro", "/var/run:/var/run:ro", "/sys:/sys:ro", "/var/lib/docker/:/var/lib/docker:ro"]
+    ports: ["8080:8080"]
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+    volumes: ["./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro", "./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro"]
+    ports: ["3000:3000"]
+  sonarqube:
+    image: sonarqube:10.6-community
+    ports: ["9000:9000"]
+    profiles: ["ci"]
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    user: root
+    ports: ["8081:8080"]
+    volumes: [jenkins_home:/var/jenkins_home, /var/run/docker.sock:/var/run/docker.sock]
+    profiles: ["ci"]
+volumes: {pgdata: {}, jenkins_home: {}}

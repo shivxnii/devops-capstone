@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.env
+*.tfstate*
+.terraform/
+*.tfvars
+!terraform.tfvars.example
+coverage.xml
+.coverage

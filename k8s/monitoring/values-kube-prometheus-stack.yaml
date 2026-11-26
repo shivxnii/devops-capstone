@@ -1,0 +1,8 @@
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f k8s/monitoring/values-kube-prometheus-stack.yaml
+grafana:
+  adminPassword: change-me
+  service: {type: NodePort}
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false

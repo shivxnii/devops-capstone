@@ -1,0 +1,24 @@
+- name: Base packages
+  apt: {name: [git, curl, ufw, fail2ban, ca-certificates, gnupg], state: present, update_cache: true}
+- name: Disable swap (required by kubelet)
+  command: swapoff -a
+  changed_when: false
+- name: Remove swap from fstab
+  replace: {path: /etc/fstab, regexp: '^([^#].*\sswap\s.*)$', replace: '# \1'}
+- name: Kernel modules for Kubernetes networking
+  copy: {dest: /etc/modules-load.d/k8s.conf, content: "overlay\nbr_netfilter\n"}
+- name: Load modules
+  community.general.modprobe: {name: "{{ item }}"}
+  loop: [overlay, br_netfilter]
+- name: Sysctl for Kubernetes
+  ansible.posix.sysctl: {name: "{{ item.k }}", value: "{{ item.v }}", sysctl_set: true, state: present}
+  loop:
+    - {k: net.ipv4.ip_forward, v: "1"}
+    - {k: net.bridge.bridge-nf-call-iptables, v: "1"}
+- name: Firewall - allow SSH, HTTP, K8s API, NodePorts
+  community.general.ufw: {rule: allow, port: "{{ item }}", proto: tcp}
+  loop: ["22", "80", "6443", "30000:32767"]
+- name: Enable firewall
+  community.general.ufw: {state: enabled, policy: deny, direction: incoming}
+- name: Enable fail2ban
+  service: {name: fail2ban, state: started, enabled: true}

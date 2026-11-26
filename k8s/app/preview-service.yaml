@@ -1,0 +1,7 @@
+# Preview Service always targets GREEN, so a new release can be smoke-tested before the live Service is switched.
+apiVersion: v1
+kind: Service
+metadata: {name: taskmanager-preview, namespace: taskmanager}   # always points to GREEN for smoke tests
+spec:
+  selector: {app: taskmanager, color: green}
+  ports: [{port: 80, targetPort: http}]

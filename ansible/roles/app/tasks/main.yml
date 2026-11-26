@@ -1,0 +1,9 @@
+- name: Clone/update repo
+  git: {repo: "{{ app_repo }}", dest: "{{ app_dir }}", version: main, force: true}
+- name: Apply app manifests
+  command: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ app_dir }}/k8s/app/
+  register: apply
+  changed_when: "'configured' in apply.stdout or 'created' in apply.stdout"
+- name: Wait for blue deployment
+  command: kubectl --kubeconfig=/etc/kubernetes/admin.conf -n taskmanager rollout status deploy/taskmanager-blue --timeout=180s
+  changed_when: false

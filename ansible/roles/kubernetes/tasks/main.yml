@@ -1,0 +1,33 @@
+- name: K8s apt key
+  shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes.gpg
+  args: {creates: /etc/apt/keyrings/kubernetes.gpg}
+- name: K8s apt repo
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/ /"
+    state: present
+- name: Install kubeadm, kubelet, kubectl
+  apt: {name: [kubelet, kubeadm, kubectl], state: present, update_cache: true}
+- name: Hold versions
+  dpkg_selections: {name: "{{ item }}", selection: hold}
+  loop: [kubelet, kubeadm, kubectl]
+- name: containerd default config with systemd cgroups
+  shell: containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' > /etc/containerd/config.toml
+  args: {creates: /etc/containerd/config.toml.done}
+  notify: restart containerd
+- name: Init control plane (master only)
+  command: kubeadm init --pod-network-cidr={{ pod_cidr }}
+  args: {creates: /etc/kubernetes/admin.conf}
+  when: inventory_hostname in groups['k8s_master']
+- name: kubeconfig for user
+  shell: |
+    mkdir -p /home/{{ ansible_user }}/.kube && cp /etc/kubernetes/admin.conf /home/{{ ansible_user }}/.kube/config
+    chown -R {{ ansible_user }}: /home/{{ ansible_user }}/.kube
+  args: {creates: "/home/{{ ansible_user }}/.kube/config"}
+  when: inventory_hostname in groups['k8s_master']
+- name: Allow scheduling on single-node control plane
+  command: kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/control-plane-
+  failed_when: false
+  when: inventory_hostname in groups['k8s_master']
+- name: Install Flannel CNI
+  command: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+  when: inventory_hostname in groups['k8s_master']

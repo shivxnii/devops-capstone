@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block c %}
+<form method="post" action="/tasks/add" class="card"><input name="title" placeholder="Task title" required>
+<input name="description" placeholder="Description"><button>Add task</button></form>
+{% for t in tasks %}<div class="card row"><div><strong class="{{ 'done' if t.done }}">{{ t.title }}</strong><br><small>{{ t.description }}</small></div>
+<form method="post" action="/tasks/{{ t.id }}/toggle"><button>{{ 'Undo' if t.done else 'Done' }}</button></form>
+<form method="post" action="/tasks/{{ t.id }}/delete"><button class="danger">Delete</button></form></div>
+{% else %}<p>No tasks yet.</p>{% endfor %}{% endblock %}

@@ -1,0 +1,14 @@
+- name: Keyring directory
+  file: {path: /etc/apt/keyrings, state: directory, mode: "0755"}
+- name: Docker GPG key
+  get_url: {url: https://download.docker.com/linux/ubuntu/gpg, dest: /etc/apt/keyrings/docker.asc, mode: "0644"}
+- name: Docker apt repo
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+- name: Install Docker
+  apt: {name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin], state: present, update_cache: true}
+- name: Start Docker
+  service: {name: docker, state: started, enabled: true}
+- name: Let ubuntu user run docker
+  user: {name: "{{ ansible_user }}", groups: docker, append: true}

@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: {name: taskmanager, namespace: taskmanager}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: taskmanager.local
+      http:
+        paths: [{path: /, pathType: Prefix, backend: {service: {name: taskmanager, port: {number: 80}}}}]
