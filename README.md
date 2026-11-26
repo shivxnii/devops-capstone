@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+<<<<<<< HEAD + feature branch
 # End-to-End DevOps Pipeline for a Cloud-Native Task Manager (ENSP461 Capstone) - develop branch
 =======
 # End-to-End DevOps Pipeline for a Cloud-Native Task Manager (ENSP461 Capstone) - feature branch
